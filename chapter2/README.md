@@ -24,7 +24,7 @@ Creating service 'hello-example' in namespace 'default':
   4.762s Ingress has not yet been reconciled.
   6.104s Ready to serve.
  
-Service 'hello-example' created with latest revision 'hello-example-00001' and URL: http://hello-example.example.com                          ❺
+Service 'hello-example' created with latest revision 'hello-example-00001' and URL: http://hello-example.example.com    ❺
 ```
 ❶ Names the service
 
