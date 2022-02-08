@@ -1,0 +1,139 @@
+---
+resource_types:
+- name: k8s-cluster  # https://github.com/jgriff/k8s-resource
+  type: registry-image
+  source:
+    repository: jgriff/k8s-resource
+
+resources:
+- name: revision-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: jchesterpivotal/knative-example
+
+- name: knative-service-get
+  type: k8s-cluster
+  icon: kubernetes
+  source:
+    resource_types: Service.serving.knative.dev
+    url: ((cluster_api))
+    token: ((cluster_token))
+    certificate_authority: ((cluster_ca))
+
+- name: knative-service-put
+  type: k8s-cluster
+  icon: kubernetes
+  source:
+    resource_types: Service.serving.knative.dev
+    url: ((cluster_api))
+    token: ((cluster_token))
+    certificate_authority: ((cluster_ca))
+
+- name: example-repo
+  type: git
+  icon: git
+  source:
+    uri: ((git_repository_uri))
+    branch: master
+    private_key: ((git_private_key))
+    git_config:
+    - name: user.name
+      value: ((git_username))
+    - name: user.email
+      value: ((git_email))
+
+jobs:
+- name: update-service-image
+  plan:
+  - in_parallel:
+    - get: revision-image
+      version: every
+      trigger: true
+    - get: knative-service-get
+    - get: example-repo
+  - task: update-image
+    file: example-repo/concourse/tasks/update-image/task.yml
+    input_mapping: {knative-service: knative-service-get}
+    params:
+      TRAFFIC_CURRENT_PERCENT: 90.0
+      TRAFFIC_LATEST_PERCENT: 10.0
+  - task: commit-updates
+    file: example-repo/concourse/tasks/commit-updates/task.yml
+    params:
+      GIT_COMMITTER_NAME: ((git_username))
+      GIT_COMMITTER_EMAIL: ((git_email))
+      GIT_AUTHOR_NAME: ((git_username))
+      GIT_AUTHOR_EMAIL: ((git_email))
+  - put: example-repo
+    params:
+      repository: example-repo-updated
+
+- name: apply-updated-yaml
+  plan:
+  - in_parallel:
+      - get: revision-image
+        passed: [update-service-image]
+        trigger: true
+      - get: example-repo
+        passed: [update-service-image]
+  - put: knative-service-put
+    inputs:
+    - example-repo
+    params:
+      kubectl: apply -f example-repo/services/rendered/service.yaml
+
+- name: test-reachability
+  plan:
+  - in_parallel:
+    - get: revision-image
+      passed: [apply-updated-yaml]
+      trigger: true
+    - get: knative-service-get
+    - get: example-repo
+      passed: [apply-updated-yaml]
+  - task: test-reachability
+    file: example-repo/concourse/tasks/test-reachability/task.yml
+    input_mapping: {knative-service: knative-service-get}
+    attempts: 5
+
+- name: update-traffic-settings
+  plan:
+  - in_parallel:
+    - get: revision-image
+      passed: [test-reachability]
+      trigger: true
+    - get: knative-service-get
+      passed: [test-reachability]
+    - get: example-repo
+      passed: [test-reachability]
+  - task: update-image
+    file: example-repo/concourse/tasks/update-image/task.yml
+    input_mapping: {knative-service: knative-service-get}
+    params:
+      TRAFFIC_CURRENT_PERCENT: 100.0
+      TRAFFIC_LATEST_PERCENT: 0.0
+  - task: commit-updates
+    file: example-repo/concourse/tasks/commit-updates/task.yml
+    params:
+      GIT_COMMITTER_NAME: ((git_username))
+      GIT_COMMITTER_EMAIL: ((git_email))
+      GIT_AUTHOR_NAME: ((git_username))
+      GIT_AUTHOR_EMAIL: ((git_email))
+  - put: example-repo
+    params:
+      repository: example-repo-updated
+
+- name: apply-final-yaml
+  plan:
+  - in_parallel:
+      - get: revision-image
+        passed: [update-traffic-settings]
+        trigger: true
+      - get: example-repo
+        passed: [update-traffic-settings]
+  - put: knative-service-put
+    inputs:
+    - example-repo
+    params:
+      kubectl: apply -f example-repo/services/rendered/service.yaml

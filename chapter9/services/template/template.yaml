@@ -1,0 +1,21 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:json", "json")
+#@ resource = json.decode(data.read("resource.json"))
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-example-svc
+spec:
+  template:
+    spec:
+      containers:
+      - name: user-container
+        image: #@ data.values.digested_image
+  traffic:
+  - tag: current
+    revisionName: #@ resource['status']['latestReadyRevisionName']
+    percent: #@ data.values.current_percent
+  - tag: latest
+    latestRevision: true
+    percent: #@ data.values.latest_percent

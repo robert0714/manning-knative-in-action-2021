@@ -1,0 +1,14 @@
+platform: linux
+
+image_resource:
+    type: registry-image
+    source:
+        repository: ubuntu
+
+inputs:
+- name: revision-image
+- name: knative-service-updated
+- name: example-repo
+
+run:
+    path: example-repo/concourse/tasks/cat-service/run

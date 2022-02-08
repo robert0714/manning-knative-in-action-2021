@@ -1,0 +1,16 @@
+platform: linux
+
+image_resource:
+    type: registry-image
+    source:
+        repository: alpine/git
+
+inputs:
+- name: knative-service-updated
+- name: example-repo
+
+outputs:
+- name: example-repo-updated
+
+run:
+    path: example-repo/concourse/tasks/commit-updates/run

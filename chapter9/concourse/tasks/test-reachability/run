@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+echo Begin
+
+latest_url=$(cat knative-service/resource.json | jq --raw-output '.status.traffic | map(select(.tag=="latest"))[0].url')
+
+curl --verbose --fail $latest_url
+
+echo
+echo Done.
+echo

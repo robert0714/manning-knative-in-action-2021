@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+echo Begin
+
+cp knative-service/resource.json example-repo/services/template/resource.json
+
+echo
+echo Templating
+echo
+
+ytt \
+    --file example-repo/services/template/ \
+    --data-value-file digest=revision-image/digest \
+    --data-value-yaml current_percent=$TRAFFIC_CURRENT_PERCENT \
+    --data-value-yaml latest_percent=$TRAFFIC_LATEST_PERCENT \
+    --output-files knative-service-updated
+
+echo
+echo Service as templated:
+echo
+
+cat knative-service-updated/service.yaml
+
+echo
+echo Done.
+echo

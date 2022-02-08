@@ -1,0 +1,21 @@
+platform: linux
+
+image_resource:
+    type: registry-image
+    source:
+        repository: gerritk/ytt
+
+inputs:
+- name: knative-service
+- name: revision-image
+- name: example-repo
+
+outputs:
+- name: knative-service-updated
+
+run:
+    path: example-repo/concourse/tasks/update-image/run
+
+params:
+    TRAFFIC_CURRENT_PERCENT:
+    TRAFFIC_LATEST_PERCENT:

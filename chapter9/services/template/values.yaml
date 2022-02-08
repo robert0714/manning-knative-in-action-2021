@@ -1,0 +1,10 @@
+#@data/values
+---
+base: '[ERROR! Base image missing!]'
+digest: '[ERROR! Image digest missing!]'
+digested_image: '[ERROR! Image digest missing!]'
+
+current_percent: -111
+latest_percent: -999
+
+revision_name: '[ERROR! Revision name missing!]'

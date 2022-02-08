@@ -1,0 +1,19 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-example-svc
+  annotations:
+    example.com/container-image: jchesterpivotal/knative-example
+spec:
+  template:
+    spec:
+      containers:
+      - name: user-container
+        image: jchesterpivotal/knative-example@sha256:e1bee530d8d8cf196bdb8064773324b2435c46598cd21d043c96f15b77b16cb3
+  traffic:
+  - tag: current
+    revisionName: knative-example-svc-8tn52
+    percent: 100
+  - tag: latest
+    latestRevision: true
+    percent: 0

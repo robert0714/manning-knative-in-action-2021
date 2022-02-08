@@ -1,0 +1,21 @@
+#@ load("@ytt:data", "data")
+#@
+#@ kourier_data = {
+#@    data.values.ip_address + ".nip.io": "",
+#@    "nip.io": ""
+#@ }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-domain
+  namespace: knative-serving
+data: #@ kourier_data
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-network
+  namespace: knative-serving
+data:
+  ingress.class: kourier.ingress.networking.knative.dev
