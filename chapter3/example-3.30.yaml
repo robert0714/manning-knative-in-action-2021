@@ -1,0 +1,20 @@
+apiVersion: serving.knative.dev/v1
+kind: Configuration
+metadata:
+  name: values-from-example
+spec:
+  template:
+    spec:
+      containers:
+      - image: example.com/an/image
+        env:
+        - name: FIRST_VARIABLE
+          valueFrom:
+            configMapKeyRef:
+              name: example-configmap
+              key: firstvalue
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: example-secret
+              key: password

@@ -1,0 +1,9 @@
+apiVersion: serving.knative.dev/v1
+kind: Route
+metadata:
+  name: route-example
+spec:
+  traffic:
+  - configurationName: hello-example
+    latestRevision: true
+    percent: 100

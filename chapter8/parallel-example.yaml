@@ -1,0 +1,17 @@
+---
+apiVersion: flows.knative.dev/v1beta1
+kind: Parallel
+metadata:
+  name: example-parallel
+spec:
+  branches:
+  - subscriber:
+      ref:
+        apiVersion: serving.knative.dev/v1
+        kind: Service
+        name: first-branch-service
+    reply:
+      ref:
+        kind: Service
+        apiVersion: serving.knative.dev/v1
+        name: sockeye+
