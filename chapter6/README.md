@@ -21,8 +21,9 @@ $ kn broker create default
 Broker 'default' successfully created in namespace 'default'.
  
 $ kn service create cloudevents-player \
->     --image ruromero/cloudevents-player:latest \
->     --env BROKER_URL=http://default
+     --image ruromero/cloudevents-player:latest \
+     --env BROKER_URL=http://default
+     
 Creating service 'cloudevents-player' in namespace 'default':
 
   0.091s The Route is still working to reflect the latest desired specification.
