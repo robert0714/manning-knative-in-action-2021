@@ -139,8 +139,7 @@ Ping source 'ping-player' updated in namespace 'default'.
 $ kn source ping describe ping-player
 Name:         ping-player
 Namespace:    default
-Annotations:  sources.knative.dev/creator=jchester@example.com,
-              ➥ sources.knative.dev/lastModifier=j ...
+Annotations:  sources.knative.dev/creator=jchester@example.com,  sources.knative.dev/lastModifier=j ...
 Age:          1d
 Schedule:     * * * * *
 Data:         {"foo":"and likewise bar"}
