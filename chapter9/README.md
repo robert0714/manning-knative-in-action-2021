@@ -37,7 +37,7 @@ This chapter covers
 
 What I’ve spoken about so far is Knative-as-Knative. But software doesn’t exist in a vacuum—it has to be made and run. To wrap up the book, I’d like to touch lightly on the basics of what comes next in the real, day-to-day work we have to do. Pivotal Tracker calls these “Chores”: things you need to do to make things tidier around the place, so that you can move faster in the future.
 
-We tend to neglect these as a profession. In the kitchens of Michelin-starred restaurants, perfectionist chefs are taught to obsess over mise en place—“Everything in its place.” Before cooking a dish, they want every knife, every herb, every surface, every ingredient, every utensil, every pan, every gas burner, everything, to be clean and sharp and fresh and in the same place as it always is.
+We tend to neglect these as a profession. In the kitchens of Michelin-starred restaurants, perfectionist chefs are taught to obsess over *mise en place*—“Everything in its place.” Before cooking a dish, they want every knife, every herb, every surface, every ingredient, every utensil, every pan, every gas burner, everything, to be clean and sharp and fresh and in the same place as it always is.
 
 Right now you have your software, on to which I imagine you have lavished all the attention and love that you can muster. And you’ve now learned about Knative, which is a system that can launch, run, scale, and wire together your software.
 
@@ -48,7 +48,7 @@ Now it’s time to talk a little bit about the connective tissue. The first is g
 Figure 9.1 You are in the loop too.
 
 ## 9.1 Turning your software into something runnable
-Let’s first look at the business of converting source code into a container image. A common practice is to use a Dockerfile and hang everything off the latest tag. I am not a fan. My views are that you can’t trust registry tagging, and you should at least consider alternatives to Dockerfiles.
+Let’s first look at the business of converting source code into a container image. A common practice is to use a Dockerfile and hang everything off the *latest* tag. I am not a fan. My views are that you can’t trust registry tagging, and you should at least consider alternatives to Dockerfiles.
 
 What alternatives? There are many. But before I arbitrarily pick the one that by pure coincidence I have previously worked on, I will take a moment to insist that you always use digests.
 
@@ -65,28 +65,28 @@ Here is the problem: example/foo is a name that doesn’t have an exact, stable 
 
 But there’s more! Different names can refer to the same image (as in identical, byte-for-byte), but still be considered to be different by container runtimes. So when the container runtime checks to see if it has example/foo in its cache, there is no guarantee whatsoever that the example/foo in its local cache is the same as the one in the registry it is configured to fetch things from. In fact, you have no guarantees about what it means whatsoever. All you’ve had to enforce consistency, up until now, is lucky timing.
 
-Kubernetes tried to make this less painful by introducing the imagePullPolicy configuration item, which Knative allows you to set. In particular, it lets you set this to Never (uninteresting for our purposes), to ``IfNotPresent``, or to ``Always``. At face value, these should be enough. But they are not.
+Kubernetes tried to make this less painful by introducing the ``imagePullPolicy`` configuration item, which Knative allows you to set. In particular, it lets you set this to ``Never`` (uninteresting for our purposes), to ``IfNotPresent``, or to ``Always``. At face value, these should be enough. But they are not.
 
 Setting ``IfNotPresent`` collides with the problem of names being mutable. It ensures that, over time, a cluster will wind up with multiple versions of an image in circulation, because different Nodes will fetch from the registry at different points in time.
 
 ![Without digests, this nightmare will eventually be yours](images/09-02.png)  
 Figure 9.2 Without digests, this nightmare will eventually be yours.
 
-So how about Always? It still doesn’t solve the inconsistency problem, because it’s only applied when containers are being launched from the image. If a copy of your software runs for a long time on node #1, then later a second copy is launched on node #2, you can still wind up with inconsistent versions. And, of course, Always means you enjoy no gains from caching.
+So how about ``Always``? It still doesn’t solve the inconsistency problem, because it’s only applied when containers are being launched from the image. If a copy of your software runs for a long time on node #1, then later a second copy is launched on node #2, you can still wind up with inconsistent versions. And, of course, ``Always`` means you enjoy no gains from caching.
 
-Figure 9.2 lays out a scenario where, at the end, there are five different versions of an image in circulation. It’s easy for the developer’s mental model to be far out of sync with the actual state of the cluster. This scenario can occur whether you use Always or IfNotPresent policies, depending on the exact order of events.
+Figure 9.2 lays out a scenario where, at the end, there are **five different versions** of an image in circulation. It’s easy for the developer’s mental model to be far out of sync with the actual state of the cluster. This scenario can occur whether you use ``Always`` or ``IfNotPresent`` policies, depending on the exact order of events.
 
-The only way out of this mess is to use fully-qualified (also called “digested”) image references, which means image references that include a digest (e.g., @sha256:abcdef123...). Unlike any other form of reference, an image reference with digest refers to one, and only one, container image. That reference is immutable and exact. What it refers to today, it will refer to tomorrow, next week, next year. That’s because it’s based on the image itself, the actual and exact bytes. It doesn’t rely on a registry definition. It can be computed from the image. Change one bit and the digest becomes radically different.
+The ``only`` way out of this mess is to use fully-qualified (also called “digested”) image references, which means image references that include a digest (e.g., *@sha256:abcdef123*...). Unlike any other form of reference, an image reference with digest refers to one, and only one, container image. That reference is immutable and exact. What it refers to today, it will refer to tomorrow, next week, next year. That’s because it’s based on the image itself, the actual and exact bytes. It doesn’t rely on a registry definition. It can be computed from the image. Change one bit and the digest becomes radically different.
 
-> NOTE “What about tags?” you ask. “What’s wrong with example/foo:v1.2.3 if my CI system is generating trustworthy image tags?” The problem is that tags are mutable. There’s no guarantee that v1.2.3 will be the same image tomorrow. In fact, tags can be deleted. Basically, relying on tags is begging for bitrot.
+> NOTE “What about tags?” you ask. “What’s wrong with example/foo:v1.2.3 if my CI system is generating trustworthy image tags?” The problem is that tags are mutable. There’s no guarantee that v1.2.3 will be the same image tomorrow. In fact, tags can be ``deleted``. Basically, relying on tags is begging for bitrot.
 
-For folks using raw Kubernetes, fully-qualified image references plus IfNotPresent are both safe and efficient. But that requires you to exercise discipline in how you use Kubernetes resources like Pods or Deployments. Kubernetes itself enforces no policy about the image references you provide; it basically pipes those directly to the container runtime and leaves any dire consequences to rest upon your immortal soul.
+For folks using raw Kubernetes, fully-qualified image references plus ``IfNotPresent`` are both safe and efficient. But that requires you to exercise discipline in how you use Kubernetes resources like Pods or Deployments. Kubernetes itself enforces no policy about the image references you provide; it basically pipes those directly to the container runtime and leaves any dire consequences to rest upon your immortal soul.
 
-Knative takes an important step towards sanity on your behalf: If you submit a fully-qualified image reference, it will use it. If you don’t, Knative will create one for you. That is, it will resolve a loose reference like example/foo into a fully-qualified one like docker.io/example/foo@sha256:2ad3... whenever a Revision is created.
+Knative takes an important step towards sanity on your behalf: If you submit a fully-qualified image reference, it will use it. If you don’t, Knative will **create one for you**. That is, it will resolve a loose reference like **example/foo** into a fully-qualified one like **docker.io/example/foo@sha256:2ad3**... whenever a Revision is created.
 
 This is critical to ensure that Revisions are consistent and stable. It ensures that every running copy of a Revision uses an identical container image. And it ensures that if you use that Revision again in the future, you will still get the same container image.
 
-However, I think you can and should go further. Anywhere that you create an image, or define a record with an image reference, you should always use the fully-qualified version. That’s because the gap between “an image was created” and “the image is used” can be quite wide. Knative can’t see backward into your CI/CD pipeline. When it resolves an image reference, it can only see what is in a registry at that instant. That might or might not be what you think it is. But if you use the fully-qualified reference, you are guaranteed to get the exact image you expect.
+However, I think you can and should go further. Anywhere that you create an image, or define a record with an image reference, **you** should **always** use the fully-qualified version. That’s because the gap between “an image was created” and “the image is used” can be quite wide. Knative can’t see backward into your CI/CD pipeline. When it resolves an image reference, it can only see what is in a registry at that instant. That might or might not be what you think it is. But if you use the fully-qualified reference, you are guaranteed to get the exact image you expect.
 
 ### 9.1.2 Using Cloud Native Buildpacks (CNBs) and the pack tool
 Maybe you have built a container image before, and maybe you haven’t. If you have, you probably used a Dockerfile. My views on Dockerfiles are unflattering. I recognize that these are easy to start with and almost universal in their usage. But these are also arguments for Bash, that plucky platoon of hacks masquerading as a programming language. Dockerfiles are like the first stage of a Saturn V rocket. They got things off the ground, but they aren’t the destination. I want to stretch you a little.
@@ -99,11 +99,11 @@ Run it on the cloud for me.
 I do not care how.
 ```
 
-To me, buildpacks were always the bedrock of this promise, because these meet you at the code. Deployment artifacts come and go, but there will always be code. Learning to write a Dockerfile requires a short tutorial to begin with, and then a fair few longer tutorials to create safe, efficient, secure images.
+To me, buildpacks were always the bedrock of this promise, because these meet you at the **code**. Deployment artifacts come and go, but there will always be code. Learning to write a Dockerfile requires a short tutorial to begin with, and then a fair few longer tutorials to create safe, efficient, secure images.
 
-But to use buildpacks, historically, you just typed git push heroku or cf push and that was it. In fact, that is still it. All the clever optimizations and security mechanisms are done for you.
+But to use buildpacks, historically, you just typed ``git push heroku`` or ``cf push`` and that was ``it``. In fact, that is ``still`` it. All the clever optimizations and security mechanisms are done for you.
 
-So I like buildpacks. And the easiest way to use Cloud Native Buildpacks (CNBs) is the pack CLI.
+So I like buildpacks. And the easiest way to use Cloud Native Buildpacks (CNBs) is the ``pack`` CLI.
 
 Listing 9.1 helloworld.go
 ```go
@@ -138,7 +138,7 @@ func main() {
 
 Suppose I have a simple, single-file Go program, like the one in listing 9.1. All it does is write a fixed chunk of HTML into the response of any HTTP request. And I must begrudgingly accept that Go makes it easy to write quick-n-dirty programs like this one. No frameworks and no needing to select an HTTP library. Just import from the standard library and you’re off to the races.
 
-Each buildpack can understand how a given language ecosystem looks. In the case of Go, a buildpack can rely on the convention that the main() function in the main package will be what needs to be run at launch. And then it does the rest for you in terms of turning that into an efficient, reproducible container. Listing 9.2 shows how a pack build looks.
+Each buildpack can understand how a given language ecosystem looks. In the case of Go, a buildpack can rely on the convention that the ``main()`` function in the main package will be what needs to be run at launch. And then it does the rest for you in terms of turning that into an efficient, reproducible container. Listing 9.2 shows how a ``pack build`` looks.
 
 Listing 9.2 Tightly packed
 ```bash
@@ -227,11 +227,11 @@ Successfully built image eg
 
 ❻ Once building is complete, the export step gathers together all the layers that were restored, along with any new or updated layers that were built, and assembles those into the final container image.
 
-By default, pack gives you a fairly chatty account of its activities. When run using a Docker daemon, it also passes through any output given by Docker.1 Its chattiness lets me point out a few landmarks in listing 9.2.
+By default, ``pack`` gives you a fairly chatty account of its activities. When run using a Docker daemon, it also passes through any output given by Docker.1 Its chattiness lets me point out a few landmarks in listing 9.2.
 
-The result of the command I gave in listing 9.2 is a container image I can run with a local Docker daemon using docker run -p 8080:8080 eg. That’s because at the end of the process, the image has been added to Docker’s local cache of images. But that’s no good for Knative, which lives somewhere else and relies on registries to store and serve up container images.
+The result of the command I gave in listing 9.2 is a container image I can run with a local Docker daemon using ``docker run -p 8080:8080`` eg. That’s because at the end of the process, the image has been added to Docker’s local cache of images. But that’s no good for Knative, which lives somewhere else and relies on registries to store and serve up container images.
 
-That’s solvable, though, using the --publish option. As the name suggests, it causes pack to publish a built container image to a registry. Having done that, it becomes possible to use kn to run it as the following listing proves.
+That’s solvable, though, using the ``--publish`` option. As the name suggests, it causes ``pack`` to publish a built container image to a registry. Having done that, it becomes possible to use ``kn`` to run it as the following listing proves.
 
 Listing 9.3 Build it, run it, see it
 ```bash
@@ -239,12 +239,11 @@ $ docker login --username <your username>
 Password: <your password>
 Login Succeeded
  
-$ pack build <your username>/knative-example -path ./ --publish
+$ pack build <your username>/knative-example --path ./ --publish
 # ... build output
 Successfully built image <username username>/knative-example
  
-$ kn service create knative-buildpacked \
-  --image <your username>/knative-example
+$ kn service create knative-buildpacked  --image <your username>/knative-example
 Creating service 'knative-buildpacked' in namespace 'default':
  
 # ... Service creation output
@@ -267,22 +266,22 @@ Upon clicking the URL, you’ll see our jaunty greeting. As proof I didn’t foo
 
 The real beauty of CNBs is less about this first run experience and more about the long term gains. Some of it is due to security—having a standard means of assembling images makes it easier to audit what’s running inside the box.
 
-But it also improves performance for building and running. For building, it’s possible for CNBs to replace only layers of an image that need replacing, without needing to rebuild everything else. Dockerfiles don’t have this property. Changing any layer invalidates all the layers that follow. This shows up most strikingly when upstream images are updated. Have 100 images that start with FROM nodejs? Then you live in fear of each new version of that image, because it will force 100 rebuilds ... if indeed you even have a way to tell that you need to run 100 rebuilds. But a Cloud Native Buildpack can simply “rebase” the container image you already have onto the new base layers. No rebuilds required. The update can be done in seconds.
+But it also improves performance for building ``and`` running. For building, it’s possible for CNBs to replace only layers of an image that need replacing, without needing to rebuild everything else. Dockerfiles don’t have this property. Changing any layer invalidates all the layers that follow. This shows up most strikingly when upstream images are updated. Have 100 images that start with ``FROM nodejs``? Then you live in fear of each new version of that image, because it will force 100 rebuilds ... if indeed you even have a way to ***tell*** that you need to run 100 rebuilds. But a Cloud Native Buildpack can simply “rebase” the container image you already have onto the new base layers. No rebuilds required. The update can be done in seconds.
 
 And it’s faster at runtime too. Different images can have identical layers that are shared, and container runtimes are smart enough to take advantage of that to cache more efficiently. Using buildpacks means that images are more alike than not. These have more layers that are exactly identical. Rather than having 50 different variants of Ubuntu floating around, you only have one. Caches are more likely to be warm, network traffic is reduced, and disk space less bloated.
 
 ## 9.2 Getting your software to somewhere it runs
-I’m going to assume now that you have built the image and pushed it. How does it get into a running Revision? One way is to use kn. That works well for development, but less so for production. What I want now is a means to go from “I have a shiny new container image” to “it’s rolling out progressively.” I’ll work through a simple example here.
+I’m going to assume now that you have built the image and pushed it. How does it get into a running Revision? One way is to use ``kn``. That works well for development, but less so for production. What I want now is a means to go from “I have a shiny new container image” to “it’s rolling out progressively.” I’ll work through a simple example here.
 
 I’ll use Concourse (the self-described “Continuous Thing-Doer”) for the simple reason that it’s awesome and I like it better than alternatives. Some folks prefer Spinnaker, Tekton, the thousand or so projects that have some kind of joint custody over the name “Argo,” or self-flagellation with Jenkins. What I outline should be broadly adaptable to each of these.
 
-I could do all of this with kn and the various commands I covered in chapter 4. However, I’m going to demonstrate doing most of the CI/CD shuffle with YAML, because otherwise, I won’t be invited to give conference talks.
+I could do all of this with ``kn`` and the various commands I covered in chapter 4. However, I’m going to demonstrate doing most of the CI/CD shuffle with YAML, because otherwise, I won’t be invited to give conference talks.
 
-Which now brings me to a fork in the road. My aim in this book has been to use kn as much as possible. The interactivity is a boon for learning and playing, but not without cost. Each change you make through kn is in some sense lost. You run the command, but without your own working memory or discipline to check before every action, drift can emerge between your desired world and the desired world as Knative understands it. For example, other teammates may be using kn on the same Service as you. Or, more prosaically, you used it yesterday and forgot about a change that you made. And today, you plough ahead with a faulty mental model.
+Which now brings me to a fork in the road. My aim in this book has been to use ``kn`` as much as possible. The interactivity is a boon for learning and playing, but not without cost. Each change you make through ``kn`` is in some sense lost. You run the command, but without your own working memory or discipline to check before every action, drift can emerge between your desired world and the desired world as Knative understands it. For example, other teammates may be using ``kn`` on the same Service as you. Or, more prosaically, you used it yesterday and forgot about a change that you made. And today, you plough ahead with a faulty mental model.
 
-The way around the sins of interactivity is to separate the business of defining the desired world from the act of expressing it to the system. That’s where YAML comes back in force. While you can and should use kn for development work, or to quickly and easily inspect a Knative system, for production work, you should instead be using tools that directly submit chunks of YAML. For example, instead of kn update service, you would edit your service-whatever.yaml as required and then use kubectl apply. For a developer iterating at a terminal, this is pure overhead. But for a team working together to modify production systems, it becomes essential for general sanity.
+The way around the sins of interactivity is to separate the business of defining the desired world from the act of expressing it to the system. That’s where YAML comes back in force. While you can and should use ``kn`` for development work, or to quickly and easily inspect a Knative system, for production work, you should instead be using tools that directly submit chunks of YAML. For example, instead of ``kn`` update service, you would edit your service-whatever.yaml as required and then use kubectl apply. For a developer iterating at a terminal, this is pure overhead. But for a team working together to modify production systems, it becomes essential for general sanity.
 
-I’m going to do the simplest, dumbest progressive deployment scheme that I can manage.2 I will have a Service that has two traffic tags: current and latest. Each time the Service’s image changes, I will pull it down and edit the Service to use the new image. That will trigger the creation of a new Revision. I’ll modify the Service again to redirect 5% of the traffic to it. I’ll wait a short while and then check for reachability. If that succeeds, I’ll edit the Service a third time to make the new Revision into the current Revision. See figure 9.3 for a sequence diagram.
+I’m going to do the simplest, dumbest progressive deployment scheme that I can manage.2 I will have a Service that has two traffic tags: ``current`` and ``latest``. Each time the Service’s image changes, I will pull it down and edit the Service to use the new image. That will trigger the creation of a new Revision. I’ll modify the Service again to redirect 5% of the traffic to it. I’ll wait a short while and then check for reachability. If that succeeds, I’ll edit the Service a third time to make the new Revision into the current Revision. See figure 9.3 for a sequence diagram.
 
 ![Sequence of deployment](images/09-03.png)  
 Figure 9.3 Sequence of deployment
@@ -291,15 +290,15 @@ Figure 9.3 has a lot of arrows, but that’s just because I’m showing the bits
 
 1. A new version of an image is uploaded to a registry.
 1. The deployment system detects the new image version’s availability.
-1. The deployment system fetches the existing YAML of the Service from a Git repository. It changes the image key to point to the newest version of the image.
+1. The deployment system fetches the existing YAML of the Service from a Git repository. It changes the ``image`` key to point to the newest version of the image.
 1. The modified YAML is pushed back into the Git repository.
 1. The push back into the repo is a new commit, so another deployment system job lights up to handle it.
 1. It’s a simple job: apply the YAML to the cluster (here called “Knative”).
 1. Knative sees that the Configuration has changed. That means it needs to create a new Revision.
-1. It also sees that the YAML includes updated traffic, directing 5% to the latest Revision.
+1. It also sees that the YAML includes updated ``traffic``, directing 5% to the ``latest`` Revision.
 1. The deployment system wakes up again when Knative finishes stamping out the new Revision.
 1. It checks the direct reachability of the new Revision.
-1. If the new Revision is reachable, the YAML gets updated again. This time the newest Revision is tagged as current and set to receive 100% of traffic. The latest tag is set to 0% traffic. The previous Revision is just dropped from the traffic block altogether.
+1. If the new Revision is reachable, the YAML gets updated again. This time the newest Revision is tagged as ``current`` and set to receive 100% of traffic. The ``latest`` tag is set to 0% traffic. The previous Revision is just dropped from the traffic block altogether.
 1. The newest revision of the YAML gets pushed back into the repo, and ...
 1. That triggers ...
 1. Another apply operation.
