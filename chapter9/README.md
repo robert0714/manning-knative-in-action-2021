@@ -164,12 +164,10 @@ f3452e1989b0: Pull complete
 07cdcccb0c6c: Pull complete
 7fc970a75c69: Pull complete
 89732bc75041: Pull complete
-Digest: sha256:da8da3bcce3919534ef46ac75704a9dc
-  ➥618a05bfc624874558f719706ab7abb1
+Digest: sha256:da8da3bcce3919534ef46ac75704a9dc618a05bfc624874558f719706ab7abb1
 Status: Downloaded newer image for gcr.io/paketo-buildpacks/builder:tiny
 tiny-cnb: Pulling from paketobuildpacks/run
-Digest: sha256:53262af8c65ac823aecc0200894d37f0
-  ➥c3d84df07168fdb8389f6aefbc33a6d7
+Digest: sha256:53262af8c65ac823aecc0200894d37f0c3d84df07168fdb8389f6aefbc33a6d7
 Status: Image is up to date for paketobuildpacks/run:tiny-cnb
  
 ===> DETECTING                                    ❷
@@ -197,8 +195,7 @@ Go Distribution Buildpack 0.0.193
  
 Go Build Buildpack 0.0.15
   Executing build process
-    Running 'go build -o
-      ➥ /layers/paketo-buildpacks_go-build/targets/bin -buildmode pie .'
+    Running 'go build -o  /layers/paketo-buildpacks_go-build/targets/bin -buildmode pie .'
       Completed in 1.18s
  
   Assigning launch processes
@@ -315,7 +312,7 @@ For reasons of space, I won’t go into a full example of this flow with Concour
 
 If you don’t have at least three tools that somehow process YAML, hand in your Cloud Native Architecture merit badge at the next meetup. The most common approach is text templating, which is easy to start with, but which typically leads to utter and entire madness, because YAML has significant whitespace. You could just render JSON in a single line, which is technically valid YAML, minus whitespace issues. But that would be uncool.
 
-Less common, but more protective of sanity, are higher-order tools that treat YAML as a kind of compilation target. There are many of these as well. People I trust have sung to me the virtues of Dhall (https://dhall-lang.org/), Pulumi (https://www .pulumi.com/), and CUE (https://cuelang.org/), but I haven’t used any of those. Myself, I use ytt (https://get-ytt.io/), because it’s relatively simple and so am I.3
+Less common, but more protective of sanity, are higher-order tools that treat YAML as a kind of compilation target. There are many of these as well. People I trust have sung to me the virtues of Dhall (https://dhall-lang.org/), Pulumi (https://www.pulumi.com/), and CUE (https://cuelang.org/), but I haven’t used any of those. Myself, I use ytt (https://get-ytt.io/), because it’s relatively simple and so am I.3
 
 > NOTE By way of disclosure, I work (as of this writing) for the same company—VMware, via the Pivotal acquisition—that sponsors the development of ytt, kapp, and kbld. Did I choose these out of corporate loyalty? Not really, no. I picked ytt because I like it better than Helm or Kustomize. I picked kapp because it recreates and reimagines many of the things I liked about BOSH, a powerful tool that remained obscure. But it is fair to say that I was aware of these tools because these were first developed by people I have some connection to.
 
@@ -363,7 +360,7 @@ spec:
 
 ❼ ... a percentage target for latest.
 
-In listing 9.5, I provide variables that ytt will inject into my template. The fact is that I want to set all of these at the command line. But to do so, I need to define their existence in a file. To me it seems like a silly gotcha, but I haven’t dug deeply into why it’s this way. It, at least, provides a kind of requirement to provide a declarative form of the variables somewhere in a repo.
+In listing 9.5, I provide variables that ``ytt`` will inject into my template. The fact is that I want to set all of these at the command line. But to do so, I need to define their existence in a file. To me it seems like a silly gotcha, but I haven’t dug deeply into why it’s this way. It, at least, provides a kind of requirement to provide a declarative form of the variables somewhere in a repo.
 
 Listing 9.5 values.yaml for the template
 ```yaml
@@ -418,11 +415,11 @@ spec:
 
 ❸ By default, ytt spits out the rendered YAML into STDOUT. I did that here so you can see the results, but for the next step, you would need to pipe the output into a file. Something like ytt ... > service.yaml.
 
-In listing 9.6, a design principle of ytt is that you need to give it everything it will need before it does anything. There’s no file access, no network access, no clocks. Nothing is added which might make the template non-deterministic. Of course, this might seem boilerplate-y, especially if you start working with directories with many files. In that case, you can flip over to passing directory paths instead of file paths as I did with the --file flag.
+In listing 9.6, a design principle of ``ytt`` is that you need to give it everything it will need before it does anything. There’s no file access, no network access, no clocks. Nothing is added which might make the template non-deterministic. Of course, this might seem boilerplate-y, especially if you start working with directories with many files. In that case, you can flip over to passing directory paths instead of file paths as I did with the ``--file`` flag.
 
 In a proper CI/CD situation, the next step is to commit the change to a repository. This establishes a log of intentions over time, as I discussed early in chapter 3. If you’re following a multi-repo approach, then put these into a separate, special-purpose repository.
 
-Listing 9.7 shows the commands I’ve settled on for use in commit-as-part-of-CI tasks. It’s more involved and verbose than what I do at a local workstation. Like a trial lawyer, I am asking git to state information “for the record”—in this case, gathering logs that can help me with bug fixing or historical understanding in the future.
+Listing 9.7 shows the commands I’ve settled on for use in commit-as-part-of-CI tasks. It’s more involved and verbose than what I do at a local workstation. Like a trial lawyer, I am asking ``git`` to state information “for the record”—in this case, gathering logs that can help me with bug fixing or historical understanding in the future.
 
 Listing 9.7 Committing changes in a chatty fashion
 ```bash
@@ -445,12 +442,8 @@ index 040a075..c94aee9 100755
      spec:
        containers:
        - name: user-container
--        image: registry.example.com/foo/bar
-                ➥@sha256:ee5659123e3110d036d40e7c0fe43766a8f0716871
-                ➥0aef35785665f80788c3b9
-+        image: registry.example.com/foo/bar
-                ➥@sha256:43e8511d2435ed04e4334137822030a909f5cd1d37
-                ➥044c07ef30d7ef17af4e76
+-        image: registry.example.com/foo/bar@sha256:ee5659123e3110d036d40e7c0fe43766a8f07168710aef35785665f80788c3b9
++        image: registry.example.com/foo/bar@sha256:43e8511d2435ed04e4334137822030a909f5cd1d37044c07ef30d7ef17af4e76
    traffic:
    - tag: current
 -    revisionName: knative-example-svc-24l5l
@@ -488,24 +481,24 @@ Date:   Thu Aug 20 18:57:32 2020 +0000
 
 ❺ This command spits out the commit as I would see it in a log, without getting stuck in less. CI/CD systems vary on how terminal-y their runtime environments are, so it’s useful to force the issue with —no-pager.
 
-When using git status --verbose, the information printed duplicates the Git repository itself, doesn’t it? Yes, it does, but only if the git push to the repo is successful. It could fail or error out and I’d have no independent way to know what was meant to happen. And, of course, nobody has ever made a force push that they later regretted, right?
+When using ``git status --verbose``, the information printed duplicates the Git repository itself, doesn’t it? Yes, it does, but only if the ``git push`` to the repo is successful. It could fail or error out and I’d have no independent way to know what was meant to happen. And, of course, nobody has ever made a force push that they later regretted, right?
 
-At the end of listing 9.7, I have a commit that can be pushed into a repo. In the example Concourse pipeline, I use git-resource to do this, but you can use a script or whatever other system makes sense to you. My goal is to record my intent, which in this case is twofold:
+At the end of listing 9.7, I have a commit that can be pushed into a repo. In the example Concourse pipeline, I use ``git-resource`` to do this, but you can use a script or whatever other system makes sense to you. My goal is to record my intent, which in this case is twofold:
 
 * Change the current exact container image to a different exact container image
-* Split traffic so that only 10% of traffic flows to the latest
+* Split traffic so that only 10% of traffic flows to the ``latest``
 
-Having pushed my YAML into a Git repository, the next step is to do something with it. Opinions vary on what comes next. Some vendors sell tools that perform a git pull inside of each cluster, then turn to the API Server to apply whatever was pulled. Other vendors instead sell tools that perform a git pull outside of clusters, which then turn to the API Server to apply whatever was pulled.
+Having pushed my YAML into a Git repository, the next step is to do something with it. Opinions vary on what comes next. Some vendors sell tools that perform a ``git pull`` inside of each cluster, then turn to the API Server to apply whatever was pulled. Other vendors instead sell tools that perform a ``git pull`` outside of clusters, which then turn to the API Server to apply whatever was pulled.
 
 A surprising amount of light and heat attends to this distinction, probably because “push-based GitOps vs. pull-based GitOps” is, for folks involved, connected to their meal ticket. I myself like the external push approach. It allows me to use a single tool like Concourse, Tekton, Jenkins, or whatever for all my “things-happen-in-some-kind-of-order” needs. More importantly, it does not depend on the stability of the target cluster. GitOps from within a cluster cannot dig you out of a misbehaving cluster—you’ll need to do that from the outside if things go bad. But if you’re going to do so, why not smooth the road you will wind up on anyhow?
 
 The main counterarguments are about scale and security. For scale, the idea is that many clusters pulling from Git are more scalable than a single system pushing to many clusters. I don’t fully disagree, actually, but I note that you can quickly reach thresholds at which GitHub or GitLab become unwilling to cooperate. It’s also the case that you can scale the pushing apparatus pretty easily. And again, you’ll need that capability if you roll out a change that wedges all your clusters, so why not prepare it now?
 
-Which leaves security—that your central system will need too many privileges for too many things. Again, I partially agree, but at a per-cluster level it’s a wash. Kubernetes does allow some fine-grained slicing and dicing with its RBAC stuff, but in practice, many folks become impatient and slather cluster-admin everywhere (a tip: don’t). You need to treat secrets as special anyhow, you need to manage your portfolio of sensitive key material anyhow, so ... why not prepare it now?
+Which leaves security—that your central system will need too many privileges for too many things. Again, I partially agree, but at a per-cluster level it’s a wash. Kubernetes does allow some fine-grained slicing and dicing with its RBAC stuff, but in practice, many folks become impatient and slather ``cluster-admin`` everywhere (a tip: don’t). You need to treat secrets as special anyhow, you need to manage your portfolio of sensitive key material anyhow, so ... why not prepare it now?
 
-In any case, I will demonstrate the “push” approach. Broadly, this just means that I’m going to use kubectl apply. If you were wondering whether I would use kn, the answer is no. Or, more precisely, not for applying the change. First, slinging YAML explicitly is the province of kubectl; kn is meant for interactive use. Second, kn likes to take a little extra control of your Services. In particular, it takes control of Revision names itself, rather than letting Knative Serving pick one automatically. This turns out to play poorly with a YAML-based approach. You can’t cross the streams.
+In any case, I will demonstrate the “push” approach. Broadly, this just means that I’m going to use ``kubectl apply``. If you were wondering whether I would use kn, the answer is no. Or, more precisely, not for applying the change. First, slinging YAML explicitly is the province of ``kubectl``; ``kn`` is meant for interactive use. Second, kn likes to take a little extra control of your Services. In particular, it takes control of Revision names itself, rather than letting Knative Serving pick one automatically. This turns out to play poorly with a YAML-based approach. You can’t cross the streams.
 
-This is fine in CI/CD land. You’re not doing anything interactive. Precision control of settings is a good tradeoff against convenience if your changes are automated and repeatable. In theory, I could have my CI/CD pipeline take charge of Revision names for me. A lot of places have naming schemes that make that capability necessary. I won’t demonstrate it here though.
+This is *fine* in CI/CD land. You’re not doing anything interactive. Precision control of settings is a good tradeoff against convenience if your changes are automated and repeatable. In theory, I could have my CI/CD pipeline take charge of Revision names for me. A lot of places have naming schemes that make that capability necessary. I won’t demonstrate it here though.
 
 Now I’ll apply the YAML and then look at what I have in listing 9.8. The interesting part of that listing is that I’ve split traffic between two Revisions, distinguished by their digest.
 
@@ -524,14 +517,12 @@ URL:          http://knative-example-svc.default.example.com
 Revisions:
   90%   knative-example-svc-8tn52 #current [7] (4m)      ❶
         Image:  registry.example.com/foo/bar             ❷
-        ➥@sha256:e1bee530d8d8cf196bdb8064773324b2
-        ➥435c46598cd21d043c96f15b77b16cb3 (at e1bee5)
+        ➥@sha256:e1bee530d8d8cf196bdb8064773324b2435c46598cd21d043c96f15b77b16cb3 (at e1bee5)
  
   10%   @latest (knative-example-svc-vlsw6)              ❸
         ➥#latest [8] (4m)
         Image:  registry.example.com/foo/bar             ❹
-        ➥@sha256:c9951f62a5f8480b727aa66815ddb572
-        ➥34c6f077613a6f01cad3c775238893b0 (at c9951f)
+        ➥@sha256:c9951f62a5f8480b727aa66815ddb57234c6f077613a6f01cad3c775238893b0 (at c9951f)
  
 Conditions:
   OK TYPE                   AGE REASON
@@ -549,7 +540,7 @@ Conditions:
 
 In a Canary rollout or progressive rollout, you would now be monitoring the rate of errors being returned to end users. No point releasing something new if it’s not working for your customers. And you might get fancy and monitor performance as well, to see if there are any unwanted regressions.
 
-But, in the interests of space, I will just tap on the front door to see if anyone is home (the fancy name is “reachability test”). At my own workstation I like to use HTTPie’s http command, but for CI/CD purposes, curl is more traditional and so widely available that I use it in the following listing.
+But, in the interests of space, I will just tap on the front door to see if anyone is home (the fancy name is “reachability test”). At my own workstation I like to use HTTPie’s ``http`` command, but for CI/CD purposes, ``curl`` is more traditional and so widely available that I use it in the following listing.
 
 Listing 9.9 Knock knock!
 ```bash
@@ -561,8 +552,7 @@ $ curl \
 Begin
 * Rebuilt URL to: http://latest-knative-example-svc.default.example.com/
 *   Trying 198.51.100.99...
-* Connected to latest-knative-example-svc.default.example.com
-  ➥(198.51.100.99) port 80 (#0)
+* Connected to latest-knative-example-svc.default.example.com(198.51.100.99) port 80 (#0)
  
 > GET / HTTP/1.1
 > Host: latest-knative-example-svc.default.example.com
@@ -587,14 +577,13 @@ Begin
     <p>See? We made it to the end!</p>
 </body>
 </html>
-* Connection #0 to host latest-knative-example-svc.default.example.com
-  ➥ left intact
+* Connection #0 to host latest-knative-example-svc.default.example.com left intact
 ```
-How did I know the URL? Through the magic of convention. In chapter 4, I discussed that Knative Serving creates routable names for tags. I know that whatever lives at @latest will be reachable at latest-whatever-whatever.
+How did I know the URL? Through the magic of convention. In chapter 4, I discussed that Knative Serving creates routable names for tags. I know that whatever lives at ``@latest`` will be reachable at **latest**``-whatever-whatever``.
 
-The curl command is fairly taciturn, so using --verbose shows me the full exchange. As with git status --verbose, this leaves some historical clues in my logs that can be vital later on. The --fail flag tells curl that if it gets an HTTP 4xx or 5xx error code, it should exit with a non-zero exit code. Not using --fail is an easy gotcha in a CI/CD scenario. You expect the task to blow up if the target is unreachable, but curl takes the view that it won’t pass judgement on HTTP error codes unless you tell it to.
+The ``curl`` command is fairly taciturn, so using ``--verbose`` shows me the full exchange. As with ``git status --verbose``, this leaves some historical clues in my logs that can be vital later on. The ``--fail`` flag tells ``curl`` that if it gets an HTTP 4xx or 5xx error code, it should exit with a non-zero exit code. Not using ``--fail`` is an easy gotcha in a CI/CD scenario. You expect the task to blow up if the target is unreachable, but ``curl`` takes the view that it won’t pass judgement on HTTP error codes unless you tell it to.
 
-In a CI/CD system I’d go through the same cycle of edit-YAML, commit-YAML, push-YAML, pull-YAML, apply-YAML. If I use the same commands as previously, the logic automatically promotes latest to current. I can set the traffic percentage to 100%. Tada, I’ve completed my rollout!
+In a CI/CD system I’d go through the same cycle of edit-YAML, commit-YAML, push-YAML, pull-YAML, apply-YAML. If I use the same commands as previously, the logic automatically promotes ``latest`` to ``current``. I can set the traffic percentage to 100%. Tada, I’ve completed my rollout!
 
 > # Deployment by traffic percentage is different from deployment by instances
 > 
@@ -613,26 +602,26 @@ This is the problem of monitoring, or observability, or whatever your vendor has
 
 Monitoring is like a fire department. You don’t need it. Until, one day, you need it very much indeed.
 
-At this point, one learns that (1) you don’t have what you need to fight fires, and (2) it is difficult to get what you need to fight fires when everything is on fire. It only took hundreds and hundreds of years for various civilizations and nations to sort out the whole firefighting business; with any luck, we brave developers should be able to knock that down to around 50 years, plus or minus a century for flamewars.
+At this point, one learns that (1) you don’t have what you need to fight fires, and (2) it is difficult to get what you need to fight ***fires when everything*** is on fire. It only took hundreds and hundreds of years for various civilizations and nations to sort out the whole firefighting business; with any luck, we brave developers should be able to knock that down to around 50 years, plus or minus a century for flamewars.
 
-Put another way: make inspectability, probeability, monitorability, instrumentability, observability, what-the-hell-ability a part of your design. Nag product managers and tech leads. Be merciless. And read! There are dozens of excellent books on this topic; I enjoyed Practical Monitoring and Site Reliability Engineering.
+Put another way: make inspectability, probeability, monitorability, instrumentability, observability, what-the-hell-ability a part of your design. Nag product managers and tech leads. Be merciless. And read! There are dozens of excellent books on this topic; I enjoyed ***Practical Monitoring*** and ***Site Reliability Engineering***.
 
-It is the current fashion to say that there are “three pillars of observability”: logs, metrics, and traces. I feel that this is a post-facto rationalization invented by vendor marketing rather than some inevitable structure arising from fundamental physical laws. But it’s also how most tools fit themselves into the market and how most folks have learned to think of things. Logs and metrics are the oldest; traces have only really emerged out of necessity.
+It is the current fashion to say that there are “three pillars of observability”: **logs**, **metrics**, and **traces**. I feel that this is a post-facto rationalization invented by vendor marketing rather than some inevitable structure arising from fundamental physical laws. But it’s also how most tools fit themselves into the market and how most folks have learned to think of things. Logs and metrics are the oldest; traces have only really emerged out of necessity.
 
-The story of logs, metrics, and traces in Knative is really just the story of logs, metrics, and traces for Kubernetes. Knative doesn’t guarantee to provide any particular mechanism for these, but it does try to provide standards-ready facilities. For example, Knative’s own components create logs, gather metrics, and plumb through traces. But those logs and metrics and traces won’t be kept anywhere centrally accessible by Knative. Someone else needs to set up the infrastructure.
+The story of logs, metrics, and traces in Knative is really just the story of logs, metrics, and traces ***for Kubernetes***. Knative doesn’t guarantee to provide any particular mechanism for these, but it does try to provide standards-ready facilities. For example, Knative’s own components create logs, gather metrics, and plumb through traces. But those logs and metrics and traces won’t be ***kept*** anywhere centrally accessible by Knative. Someone else needs to set up the infrastructure.
 
 This problem is largely delegated to vendors who rebundle Knative into some sort of commercial offering. That’s because vendors tend to include some sort of monitoring tool into their offerings, so they add the adaptors to pipe stuff into their tools. Hopefully, your platform engineers have installed and configured some sort of monitoring tool. Likely, they have for their own needs, but do check to see if they offer observability tools to you as well.
 
-It’s worth noting something here: Knative’s own components are good citizens, publishing all kinds of information that can be slurped into various tools and systems. But Knative can’t magically fit those onto your software. For deep insight, you still need to write logs, emit metrics, and add spans to traces. In particular, you may need to add instruments that show what the user is experiencing in terms of their own goals. Sure, the front page loads fast, but how long does it take for an insurance application to trigger a confirmatory email? How long between a stockout at the retail store and a warehouse order?
+It’s worth noting something here: Knative’s own components are good citizens, publishing all kinds of information that can be slurped into various tools and systems. But Knative can’t magically fit those onto your software. For deep insight, you still need to write logs, emit metrics, and add spans to traces. In particular, you may need to add instruments that show what the **user** is experiencing in terms of their own goals. Sure, the front page loads fast, but how long does it take for an insurance application to trigger a confirmatory email? How long between a stockout at the retail store and a warehouse order?
 
 Nevertheless, the information that Knative collects automatically is still helpful, so I’m going to spend some time doing an introductory tour. I’ll be using some widely used tools (Kibana, Grafana, and Zipkin) because these were the easiest for me to set up. Any resemblance to a tool endorsement, living or dead, is purely accidental.
 
 ### 9.3.1 Logs
 First, I’m going to look at Kibana for logs (figure 9.4). This is Kibana’s most general, simplest view, Discover.
 
-1. Here you can enter search queries. The syntax is relatively simple for basic variable: value sorts of searches. A blank search means “I want to see everything.”
+1. Here you can enter search queries. The syntax is relatively simple for ***basic variable***: value sorts of searches. A blank search means “I want to see everything.”
 1. This histogram shows how many log entries were received in each time bucket. It’s mostly helpful for showing patterns once you begin to narrow your search.
-1. Here’s the detail view for each log entry. Knative takes great care to log things out in a common JSON format, which makes it easy for logging systems to parse and extract fields. You can see the result here, which is that Kibana marks field names in bold.
+1. Here’s the detail view for each log entry. Knative takes great care to log things out in a common JSON format, which makes it easy for logging systems to parse and extract fields. You can see the result here, which is that Kibana marks field names in **bold**.
 1. What field names, you might ask? Here’s where you can see every field name that has so far been encountered by Kibana.
 
 
@@ -641,7 +630,7 @@ Figure 9.4 The default Kibana “discovery” screen
 
 This is not even skimming the surface, of course. By clicking into fields or particular log entries, I can perform all manner of drilling down. Many tools will show an interface like this one, but I don’t think a parade of fast decaying screenshots is the best use of your time.
 
-What I will do is talk about what Knative logs on your behalf. As I noted before, Knative keeps solid logs of its own activity. It also emits logs for stuff flowing to and from your Revisions. Most importantly, every log entry is liberally slathered with additional data and context. For example, it adds a commit field that identifies the exact version of Knative being used.
+What I ***will*** do is talk about what Knative logs on your behalf. As I noted before, Knative keeps solid logs of its own activity. It also emits logs for stuff flowing to and from your Revisions. Most importantly, every log entry is liberally slathered with additional data and context. For example, it adds a ***commit*** field that identifies the exact version of Knative being used.
 
 Table 9.1 is a list of some Knative-provided fields you can use to narrow your search. Not all fields are available in all logs.
 
@@ -655,7 +644,7 @@ Table 9.1 Some available logging fields
 | knative.dev/operation                      | This comes from the webhook component, acting in its admission control role. The permissible values are CREATE, UPDATE, DELETE, and CONNECT. This is useful for diagnosing permissions errors. Also a possible filter for stuff you’d like to copy into independent auditing logs. |
 | knative.dev/controller                     | Where individual Reconcilers identify themselves in logs. I know the name is confusing, but remember what I said in chapter 2: controller is a process, Reconcilers are logical processes (e.g., route-controller or kpa-class-podautoscaler-controller).                          |
 
-If you or your platform engineering team have enabled request logging, you will get additional fields you can look at under the httpRequest.* keys. Out of the box, you get latency, protocol, referer, remoteIp, requestMethod, requestSize, requestUrl, responseSize, serverIp, status, and userAgent. It also prints any X-B3-Traceid headers it sees on incoming requests.
+If you or your platform engineering team have enabled request logging, you will get additional fields you can look at under the httpRequest.* keys. Out of the box, you get ``latency``, ``protocol``, ``referer``, ``remoteIp``, ``requestMethod``, ``requestSize``, `requestUrl`, ``responseSize``, ``serverIp``, ``status``, and ``userAgent``. It also prints any ``X-B3-Traceid`` headers it sees on incoming requests.
 
 ### 9.3.2 Metrics
 Knative instruments quite a few things for metrics collection, so if you have a place where the metrics drain to, there’s a lot to work with. As before, the data falls into two broad categories: metrics about Knative itself and metrics about things running on Knative. Both are useful to suss out whether bottlenecks are in Knative or in what you’re running on it.
